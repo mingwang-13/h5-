@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+    <link rel="stylesheet" href="./move.css">
+    <title></title>
+</head>
+<style>
+    html,body,#app{margin:0;padding:0;width:100%;height:100%;position: relative;}
+    .item{height: 99px;width: 99px;background-color: gray;box-sizing: border-box;display: inline-block;border: 1px solid white;}
+    .mybox{display: flex;flex-direction: column;justify-content: center;align-items: center;position: relative;}
+    .boxdiv{position:fixed;width: 90%;top:20%;left: 5%;height: 60%;background-color: #fff;display: flex;flex-direction: column;justify-content: center;align-items: center;}
+    img{width: 99px;height: 99px;}
+    .mybtn{position: absolute;top: 500px;left:120px;}
+    [v-cloak]{display: none;}
+    .sec{width: 99px;height: 99px;font-size: 100px;color:white;font-weight: bolder;text-align: center;line-height: 99px;position: absolute;top: 25%;left: 25%;z-index: 20000;background-color: gainsboro;}
+    .newsec{width: 99px;height: 99px;font-size: 100px;color:white;font-weight: bolder;text-align: center;line-height: 99px;position: absolute;top: 33%;left: 33%;z-index: 20000;background-color: gainsboro;}
+    .page1{width: 100%;height: 100%;background-color: wheat;}
+    .page2{width: 100%;height: 100%;background-color: pink;}
+    .page3{width: 100%;height: 100%;background-color: goldenrod;}
+    .page4{width: 100%;height: 100%;background-color: green;}
+    .page5{width: 100%;height: 100%;background-color: greenyellow;}
+    .page6{width: 100%;height: 100%;background-color: gainsboro;}
+    .page7{width: 100%;height: 100%;background-color: rgb(47, 50, 255);}
+    .page8{width: 100%;height: 100%;background-color: rebeccapurple;}
+    .ship{width: 20px;height: 20px;background-color: red;position: fixed;top: 50%;left:50% ;}
+</style>
+<body>
+<div id="app" v-cloak>
+             <div class="page1" ref="page1"></div>
+             <div class="page2" ref="page2"></div>
+             <div class="page3" ref="page3"></div>
+             <div class="page4" ref="page4"></div>
+             <div class="page5" ref="page5"></div>
+             <div class="page6" ref="page6"></div>
+             <div class="page7" ref="page7"></div>
+             <div class="page8" ref="page8"></div>
+             <div class="page9" ref="page9"></div>
+             <div class="page10" ref="page10"></div>
+             <div class="page11" ref="page11"></div>
+             <div class="page12" ref="page12"></div>
+             <div class="page13" ref="page13"></div>
+        <div class="ship" ref="ship"></div>
+       
+        <div class="boxdiv"  v-show ='gameshow' ref="boxdiv">
+        <div class="mybox">
+            <div v-show="secshow" id="spanTime" class="sec" ref="sec">{{this.seconds}}</div>
+            <div v-for="(item,index) in arr" :key="index" style="width: 100%;">
+                <div style="display: flex;flex-direction: row;align-items: center;justify-content: center;">
+                    <div style="height: 99px;width: 99px;" v-for="(item1,index1) in item"    @click="choose(index,index1)">
+                        <div class="item" ref="myitem">
+                        <img v-if='item1==1' src="./images/hadeng.png" alt="">
+                        <img v-if='item1==2' src="./images/error.jpg" alt="">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            </div>
+        </div>
+        <el-dialog title="提示" :visible.sync="levelshow"  width="100%" height="100%">
+                <span>这是当前关卡对应的景区简介</span>
+                <el-button type="primary" @click="confirm">确 定</el-button>
+                </span>
+        </el-dialog>
+   
+ 
+</div>
+</body>
+<script src="https://cdn.jsdelivr.net/npm/vue"></script>
+<!-- 引入组件库 -->
+<script src="https://unpkg.com/element-ui/lib/index.js"></script>
+<script>
+    var app = new Vue({
+           el: '#app',
+           data(){
+              return{
+                  arr:[
+                      [0,0],
+                      [1,0]
+                  ],//游戏容器 0为u正常显示，1为目标图片，2为错误图片
+                  gameindex:1,//当前关卡
+                  show:false,//控制结果弹窗提示
+                  x:0,//存储点击处的x
+                  y:0,//存储点击处的y
+                  tx:0,//存储当前关卡初始值为1的x
+                  ty:0,//存储当前关卡初始值为1的x
+                  gameshow:false,//控制游戏的显示隐藏
+                  levelshow:false,//控制当前关卡景区介绍的显示隐藏
+                  seconds:3,//3秒倒计时
+                  secshow:false,
+                  info:[
+                            {
+                                title:'西湖风景区',
+                                img:'./images/1.jpg'
+                            },
+                            {
+                                title:'风景区',
+                                img:'./images/2.jpg'
+                            },
+                            {
+                                title:'风景区',
+                                img:'./images/3.jpg'
+                            },
+                            {
+                                title:'风景区',
+                                img:'./images/4.jpg'
+                            },
+                            {
+                                title:'风景区',
+                                img:'./images/5.jpg'
+                            },
+                            {
+                                title:'风景区',
+                                img:'./images/6.jpg'
+                            },
+                  ],//每一关对应的景区简介
+              }
+           },
+            mounted(){
+                //游戏进行时 禁止页面被拖动
+                document.addEventListener("touchmove",this.mo,{passive:false});
+                this._disabledMouseWheel(this.$refs.page2)
+                this._disabledMouseWheel(this.$refs.boxdiv)
+                setTimeout(()=>{
+                    this.$refs.page1.className='animatebg1'+' page1'
+                },1000)
+                setTimeout(()=>{
+                     this.secshow = true
+                     this.gameshow=true
+                     this.getTime()
+                },6000)
+                setTimeout(()=>{
+                    this.secshow = false
+                    this.seconds = 3
+                    this.play()
+                },9000)
+           },
+           methods:{
+               //3秒倒计时
+               getTime(){
+                    var timer = null;
+                    timer = setInterval(()=>{
+                    //将不断变化的秒数显示在页面上
+                    this.seconds--; 
+                    document.getElementById('spanTime').innerHTML = this.seconds; 
+                    if(this.seconds==0){
+                        clearInterval(timer);//清除定时器
+                        document.getElementById('spanTime').innerHTML = 3; 
+                        this.secshow = false
+                    }
+                    },1000);
+               },    
+               //初始化每一关的地图
+               init(){
+                  if(this.gameindex==1||this.gameindex==2||this.gameindex==3||this.gameindex==4){
+                    //   1,2关为2*2
+                      this.arr =[
+                          [0,0],
+                          [1,0]
+                      ]
+                  }else{
+                    //   其余关卡为3*3
+                        this.arr =[
+                            [0,0,0],
+                            [0,0,0],
+                            [1,0,0]
+                        ]
+                  }
+               },  
+               play(){
+                    //遍历数组 获取数组当中所有值为1的索引
+                    for(var i = 0;i<this.arr.length;i++){
+                        for(var j = 0 ;j<this.arr[0].length;j++){
+                            if(this.arr[i][j] == 1){
+                               this.tx = i
+                               this.ty = j
+                            }
+                        }
+                    }
+                    // 将正确位置处的图片隐藏
+                        var x = this.tx
+                        var y = this.ty
+                        let temp=this.arr[x]
+                        temp[y]=0
+                        this.$set(this.arr,x,temp)
+                        if(this.gameindex==1){
+                            var parm1 = [0,1,2,3]
+                            var parm2 = ['rmove','dmove','upmove','lmove']
+                            this.move(parm1,parm2)
+                        }
+                        if(this.gameindex==2){
+                            var parm1 = [0,1,2,3]
+                            var parm2 = ['dmove','lmove','rmove','upmove']
+                            this.move(parm1,parm2)  
+                        }
+                        if(this.gameindex==3){
+                            var parm1 = [0,1,2,3]
+                            var parm2 = ['rmove','dmove','upmove','lmove']
+                            var parm3 = [0,1,2,3]
+                            var parm4 = ['dmove','lmove','rmove','upmove']
+                            this.move(parm1,parm2)
+                            setTimeout(()=>{
+                                this.move(parm3,parm4)
+                            },3100)  
+                        }
+                        if(this.gameindex==4){
+                            var parm1 = [0,1,2,3]
+                            var parm2 = ['rmove','dmove','upmove','lmove']
+                            var parm3 = [0,1,2,3]
+                            var parm4 = ['dmove','lmove','rmove','upmove']
+                            this.move(parm3,parm4)
+                            setTimeout(()=>{
+                                this.move(parm1,parm2)
+                            },3100)  
+                        }
+                        if(this.gameindex==5){
+                            var parm1 = [0,1,2,4,5,6,7,8]
+                            var parm2 = ['rmove','rmove','upmove','dmove','dmove','upmove','lmove','lmove']
+                            this.move(parm1,parm2)
+                        }
+                        if(this.gameindex==6){
+                            var parm1 = [0,1,2,4,5,6,7,8]
+                            var parm2 = ['dmove','lmove','dmove','lmove','upmove','rmove','rmove','upmove']
+                            this.move(parm1,parm2)
+                        }
+                        if(this.gameindex==7){
+                            var parm1 = [0,1,2,4,5,6,7,8]
+                            var parm2 = ['rmove','rmove','upmove','dmove','dmove','upmove','lmove','lmove']
+                            var parm3 = [0,1,2,3,6,7]
+                            var parm4 = ['rmove','dmove','upmove','dmove','upmove','lmove']
+                            this.move(parm1,parm2)
+                            setTimeout(()=>{
+                                this.move(parm3,parm4)
+                            },3100) 
+                        }
+                        if(this.gameindex==8){
+                            var parm1 = [0,1,2,4,5,6,7,8]
+                            var parm2 = ['dmove','lmove','dmove','lmove','upmove','rmove','rmove','upmove']
+                            var parm3 = [2,3,5,6,7,8]
+                            var parm4 = ['dmove','lmove','lmove','rmove','rmove','upmove']
+                            this.move(parm1,parm2)
+                            setTimeout(()=>{
+                                this.move(parm3,parm4)
+                            },3100) 
+                        }
+                        if(this.gameindex==9){
+                            var parm1 = [0,1,2,4,5,6,7,8]
+                            var parm2 = ['rmove','rmove','upmove','dmove','dmove','upmove','lmove','lmove']
+                            var parm3 = [0,1,2,3,6,7]
+                            var parm4 = ['dmove','lmove','dmove','upmove','rmove','upmove']
+                            this.move(parm1,parm2)
+                            setTimeout(()=>{
+                                this.move(parm3,parm4)
+                            },3100) 
+                        }
+                        if(this.gameindex==10){
+                            var parm1 = [0,1,2,4,5,6,7,8]
+                            var parm2 = ['dmove','lmove','dmove','lmove','upmove','rmove','rmove','upmove']
+                            var parm3 = [1,3,4,5,7,8]
+                            var parm4 = ['rmove','upmove','dmove','dmove','upmove','lmove']
+                            this.move(parm1,parm2)
+                            setTimeout(()=>{
+                                this.move(parm3,parm4)
+                            },3100) 
+                        }
+                        if(this.gameindex==11){
+                            var parm1 = [2,3,6,7]
+                            var parm2 = ['rmove','dmove','upmove','lmove']
+                            var parm3 = [0,1,2,4,5,6,7,8]
+                            var parm4 = ['rmove','rmove','upmove','dmove','dmove','upmove','lmove','lmove']
+                            var parm5 = [0,1,2,3,4,5]
+                            var parm6 = ['rmove','rmove','upmove','lmove','dmove','lmove']
+                            this.move(parm1,parm2)
+                            setTimeout(()=>{
+                                this.move(parm3,parm4)
+                            },3100) 
+                            setTimeout(()=>{
+                                this.move(parm5,parm6)
+                            },6200)
+                        }
+                        if(this.gameindex==12){
+                            var parm1 = [2,3,6,7]
+                            var parm2 = ['dmove','lmove','rmove','upmove']
+                            var parm3 = [0,1,2,4,5,6,7,8]
+                            var parm4 = ['dmove','lmove','dmove','lmove','upmove','rmove','rmove','upmove']
+                            var parm5 = [2,3,5,6,7,8]
+                            var parm6 = ['dmove','lmove','lmove','rmove','rmove','upmove']
+                            this.move(parm1,parm2)
+                            setTimeout(()=>{
+                                this.move(parm3,parm4)
+                            },3100) 
+                            setTimeout(()=>{
+                                this.move(parm5,parm6)
+                            },6200)
+                        }
+                        if(this.gameindex==13){
+                            var parm1 = [0,1,2,3,6,7]
+                            var parm2 = ['rmove','dmove','upmove','dmove','upmove','lmove']
+                            var parm3 = [0,1,2,4,5,6,7,8]
+                            var parm4 = ['dmove','lmove','dmove','lmove','upmove','rmove','rmove','upmove']
+                            var parm5 = [2,3,5,6,7,8]
+                            var parm6 = ['rmove','rmove','dmove','upmove','lmove','lmove']
+                            this.move(parm1,parm2)
+                            setTimeout(()=>{
+                                this.move(parm3,parm4)
+                            },3100) 
+                            setTimeout(()=>{
+                                this.move(parm5,parm6)
+                            },6200)
+                        }
+               },
+               move(parm1,parm2){
+                    //parm1为存放需要移动的方块 parm2为对应各方块的移动方向
+                    for(var i=0;i<parm1.length;i++){
+                        this.$refs.myitem[parm1[i]].className =  this.$refs.myitem[parm1[i]].className + ` ${parm2[i]+parm1[i]}`
+                    }
+                    setTimeout(()=>{
+                        for(var i=0;i<parm1.length;i++){
+                            this.$refs.myitem[parm1[i]].className = 'item'
+                        }
+                    },3000)
+               },
+               getLocal(){
+                    //显示移动后图片的正确位置 （第一关）   
+                   if(this.gameindex == 1){
+                        let temp=this.arr[1]
+                        temp[1]=1
+                        this.$set(this.arr,1,temp)
+                   }
+                   //第二关图片的正确位置
+                   if(this.gameindex == 2){
+                        let temp=this.arr[0]
+                        temp[0]=1
+                        this.$set(this.arr,0,temp)
+                   }
+                    //第三关图片的正确位置
+                    if(this.gameindex == 3){
+                        let temp=this.arr[1]
+                        temp[0]=1
+                        this.$set(this.arr,1,temp)
+                   }  
+                    //第四关图片的正确位置
+                    if(this.gameindex == 4){
+                        let temp=this.arr[1]
+                        temp[0]=1
+                        this.$set(this.arr,1,temp)
+                   }  
+                    //第五关图片的正确位置
+                    if(this.gameindex == 5){
+                        let temp=this.arr[0]
+                        temp[1]=1
+                        this.$set(this.arr,0,temp)
+                   }  
+                    //第六关图片的正确位置
+                    if(this.gameindex == 6){
+                        let temp=this.arr[1]
+                        temp[2]=1
+                        this.$set(this.arr,1,temp)
+                   }  
+                    //第七关图片的正确位置
+                    if(this.gameindex == 7){
+                        let temp=this.arr[2]
+                        temp[0]=1
+                        this.$set(this.arr,2,temp)
+                   }  
+                    //第八关图片的正确位置
+                    if(this.gameindex == 8){
+                        let temp=this.arr[2]
+                        temp[0]=1
+                        this.$set(this.arr,2,temp)
+                   }  
+                    //第九关图片的正确位置
+                    if(this.gameindex == 9){
+                        let temp=this.arr[2]
+                        temp[0]=1
+                        this.$set(this.arr,2,temp)
+                   }   
+                    //第十关图片的正确位置
+                    if(this.gameindex == 10){
+                        let temp=this.arr[1]
+                        temp[1]=1
+                        this.$set(this.arr,1,temp)
+                   }  
+                    //第十一关图片的正确位置
+                    if(this.gameindex == 11){
+                        let temp=this.arr[1]
+                        temp[2]=1
+                        this.$set(this.arr,1,temp)
+                   }  
+                    //第十二关图片的正确位置
+                    if(this.gameindex == 12){
+                        let temp=this.arr[1]
+                        temp[0]=1
+                        this.$set(this.arr,0,temp)
+                   }  
+                   //第十三关图片的正确位置
+                    if(this.gameindex == 13){
+                        let temp=this.arr[1]
+                        temp[2]=1
+                        this.$set(this.arr,1,temp)
+                   }   
+               },
+               choose(index,index1){
+                   //图片经过移动后 玩家根据记忆进行选择
+                    // 存储当前的索引,根据当前索引计算出图片移动后的正确位置
+                    this.x=index
+                    this.y=index1
+                    if(this.gameindex==1){ 
+                        if(index==1&&index1==1){
+                            this.chooseRight()    
+                        }else{
+                            this.chooseError(this.x,this.y)
+                        } 
+                    } 
+                    if(this.gameindex==2){
+                        if(index==0&&index1==0){
+                            this.chooseRight()    
+                        }else{
+                            this.chooseError(this.x,this.y)
+                        } 
+                    }
+                    if(this.gameindex==3){
+                        if(index==1&&index1==0){
+                            this.chooseRight()    
+                        }else{
+                            this.chooseError(this.x,this.y)
+                        } 
+                    }
+                    if(this.gameindex==4){
+                        if(index==1&&index1==0){
+                            this.chooseRight()    
+                        }else{
+                            this.chooseError(this.x,this.y)
+                        } 
+                    }
+                    if(this.gameindex==5){
+                        if(index==0&&index1==1){
+                            this.chooseRight()    
+                        }else{
+                            this.chooseError(this.x,this.y)
+                        } 
+                    }
+                    if(this.gameindex==6){
+                        if(index==1&&index1==2){
+                            this.chooseRight()    
+                        }else{
+                            this.chooseError(this.x,this.y)
+                        } 
+                    }
+                    if(this.gameindex==7){
+                        if(index==2&&index1==0){
+                            this.chooseRight()    
+                        }else{
+                            this.chooseError(this.x,this.y)
+                        } 
+                    }
+                    if(this.gameindex==8){
+                        if(index==2&&index1==0){
+                            this.chooseRight()    
+                        }else{
+                            this.chooseError(this.x,this.y)
+                        } 
+                    }
+                    if(this.gameindex==9){
+                        if(index==2&&index1==0){
+                            this.chooseRight()    
+                        }else{
+                            this.chooseError(this.x,this.y)
+                        } 
+                    }
+                    if(this.gameindex==10){
+                        if(index==1&&index1==1){
+                            this.chooseRight()    
+                        }else{
+                            this.chooseError(this.x,this.y)
+                        } 
+                    }
+                    if(this.gameindex==11){
+                        if(index==1&&index1==2){
+                            this.chooseRight()    
+                        }else{
+                            this.chooseError(this.x,this.y)
+                        } 
+                    }
+                    if(this.gameindex==12){
+                        if(index==1&&index1==0){
+                            this.chooseRight()    
+                        }else{
+                            this.chooseError(this.x,this.y)
+                        } 
+                    }
+                    if(this.gameindex==13){
+                        if(index==1&&index1==2){
+                            this.chooseRight()    
+                        }else{
+                            this.chooseError(this.x,this.y)
+                        } 
+                    }
+               },
+               //用户选择正确
+               chooseRight(x,y){
+                        // 选择正确 显示正确位置的图片
+                        this.getLocal()
+                        // 正确答案显示完毕后 将图片隐藏进入到下一关 并初始化下一关地图
+                        setTimeout(() => {
+                            this.levelshow = true
+                                // 第一关结束 将游戏关闭 初始化下一关
+                            this.gameshow = false
+                            this.seconds = 3
+                            this.gameindex = this.gameindex + 1
+                            this.init()
+                        }, 1000);  
+               },
+               //用户选择错误
+               chooseError(x,y){
+                        //选择错误 将当前点击处的值修改为2 并显示错误图片
+                        let array=this.arr[x]
+                        array[y]=2
+                        this.$set(this.arr,x,array)
+                        this.$message.error('答案不正确')
+                        //显示选择错误，然后初始化当前关卡游戏 
+                        setTimeout(()=>{
+                            this.init()
+                            this.secshow = true
+                            this.seconds = 3
+                            this.getTime()
+                        },1000)
+                        setTimeout(()=>{
+                            this.secshow = false
+                            this.seconds = 3
+                            this.play()
+                        },4000)
+              },
+               // 禁用当前元素的滚轮事件    
+               _scrollFunc(evt) {
+                        evt = evt || window.event;
+                        if(evt.preventDefault) {
+                        // Firefox
+                        evt.preventDefault();
+                        evt.stopPropagation();
+                        } else {
+                        // IE
+                        evt.cancelBubble=true;
+                        evt.returnValue = false;
+                        }
+                        return false;
+                    },
+               _disabledMouseWheel(obj) {
+                        // 禁用某个元素的鼠标滚轮事件
+                        if (document.addEventListener) {
+                        obj.addEventListener('DOMMouseScroll', this._scrollFunc, false);
+                        }//W3C
+                        obj.onmousewheel  = this._scrollFunc;//IE/Opera/Chrome
+                },
+               mo(e){e.preventDefault();},
+               confirm(){
+                    this.levelshow = false
+                    this.seconds = 3
+                    if(!(this.gameindex==1||this.gameindex==2||this.gameindex==3||this.gameindex==4)){
+                        this.$refs.sec.className='newsec'
+                    }
+                    if(this.gameindex==2){
+                        this.$refs.page2.className='animatebg1'+' page2'
+                    }
+                    if(this.gameindex==3){
+                        this.$refs.page3.className='animatebg1'+' page3'
+                    }
+                    if(this.gameindex==4){
+                        this.$refs.page4.className='animatebg1'+' page4'
+                    }
+                    if(this.gameindex==5){
+                        this.$refs.page5.className='animatebg1'+' page5'
+                    }
+                    if(this.gameindex==6){
+                        this.$refs.page2.className='animatebg1'+' page6'
+                    }
+                    if(this.gameindex==7){
+                        this.$refs.page7.className='animatebg1'+' page7'
+                    }
+                    if(this.gameindex==8){
+                        this.$refs.page8.className='animatebg1'+' page8'
+                    } if(this.gameindex==9){
+                        this.$refs.page9.className='animatebg1'+' page9'
+                    }
+                    if(this.gameindex==10){
+                        this.$refs.page10.className='animatebg1'+' page10'
+                    }
+                    if(this.gameindex==11){
+                        this.$refs.page11.className='animatebg1'+' page11'
+                    }
+                    if(this.gameindex==12){
+                        this.$refs.page12.className='animatebg1'+' page12'
+                    }
+                    if(this.gameindex==13){
+                        this.$refs.page13.className='animatebg1'+' page13'
+                    }
+                    setTimeout(()=>{
+                        this.gameshow = true
+                        this.secshow = true
+                        this.getTime()
+                    },6000)   
+                    setTimeout(()=>{
+                        this.secshow = false
+                        this.play()
+                    },9000)    
+            }
+
+           }
+
+       })
+</script>
+</html>
